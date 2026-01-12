@@ -57,9 +57,9 @@ cargo r --bin <version>
 
 ### Specs
 
-OS: Void Linux x86_64 - 6.12 kernel
-CPU: AMD Ryzen 5 7600 (12 cores) @5.17 GHz
-RAM: 32 GB DDR5
+- OS: Void Linux x86_64 - 6.12 kernel
+- CPU: AMD Ryzen 5 7600 (12 cores) @5.17 GHz
+- RAM: 32 GB DDR5
 
 ### Results
 
