@@ -27,6 +27,32 @@ the measurements file at build time.
 valid station name as per the constraints above and any data
 distribution (number of measurements per station) must be supported.
 
+## How to run
+
+Although the rule states that no external dependencies are allowed, I
+think `libc` is at least a minimum dependency since std also uses it. Because of
+this, currently from the `mmap` onward, my implementation only supports
+unix-like system. 
+
+To run the code, first ensure all rust toolchains are installed on your
+machine. Then compile in release mode.
+
+```bash
+cargo b --release
+```
+
+- Generate the data, this will take approx 15GB of space
+
+```bash
+cargo r --bin gen 1_000_000_000
+```
+
+- Run a version
+
+```bash
+cargo r --bin <version>
+```
+
 ## Benchmarks
 
 ### Specs
