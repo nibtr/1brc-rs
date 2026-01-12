@@ -55,3 +55,8 @@ RAM: 32 GB DDR5
 | v8      | memchr                                          | 29.51          | 29.55 ± 0.14    | 5.40x   |
 | v9      | Multithreading                                  | 4.26           | 4.27 ± 0.03     | 37.45x  |
 
+## TODO
+
+I kinda want to dive deeper in SIMD, but maybe it's for a future
+improvement. Plus, my knowledge on the topic is also limited so it will
+take some time.
