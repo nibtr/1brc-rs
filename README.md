@@ -64,7 +64,7 @@ RAM: 32 GB DDR5
 ### Results
 
 - Each version was run **5 times**.
-- Calculate the **median** runtime.
+- Calculate the **median** and **mean** runtime.
 - Speedup is calculated relative to the baseline (v1).
 
 ## Benchmark Results
@@ -81,8 +81,18 @@ RAM: 32 GB DDR5
 | v8      | memchr                                          | 29.51          | 29.55 ± 0.14    | 5.40x   |
 | v9      | Multithreading                                  | 4.26           | 4.27 ± 0.03     | 37.45x  |
 
-## TODO
+## Note and todos
 
-I kinda want to dive deeper in SIMD, but maybe it's for a future
+- I kinda want to dive deeper in SIMD, but maybe it's for a future
 improvement. Plus, my knowledge on the topic is also limited so it will
 take some time.
+- Maybe add some dependency like `ahash` or the dedicated `memchr` crate 
+to yield better results. I'll do some separate benchmarks on these but
+it's not going into the results table above since it's against the rule.
+- Think I'd take a look at some of community top benchmarks and see if I
+can copy anything (highly doubt I can).
+- Blog on this? (maybe step by step with `perf`?)
+
+## License
+
+MIT
