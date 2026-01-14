@@ -5,7 +5,6 @@ use std::{
     hash::{BuildHasher, Hasher},
     io::{self},
     os::fd::AsRawFd,
-    thread,
 };
 
 const FNV_OFFSET_BASIS: u64 = 0xcbf29ce484222325;
@@ -52,36 +51,49 @@ impl BuildHasher for Fnv1aHashBuilder {
 fn main() {
     let f = File::open("data/measurements.txt").expect("file should exist");
     let map = mmap(f).unwrap();
-    let n_workers = thread::available_parallelism()
-        .map(|n| n.get())
-        .unwrap_or(1);
-
-    let chunks = chunk_file(map, n_workers);
-    let mut handles = Vec::with_capacity(chunks.len());
-
-    for (start, end) in chunks {
-        let map = map; // only copy pointer not data
-        handles.push(thread::spawn(move || process_chunk(&map[start..end])));
-    }
 
     // (min, max, sum, count)
     let mut stats: HashMap<&[u8], (i32, i32, i32, usize), Fnv1aHashBuilder> =
         HashMap::with_capacity_and_hasher(10_000, Fnv1aHashBuilder);
 
-    for h in handles {
-        let local = h.join().unwrap();
+    let mut at = 0;
+    loop {
+        let rest = &map[at..];
+        let nl_ptr = unsafe {
+            libc::memchr(
+                rest.as_ptr() as *const libc::c_void,
+                b'\n' as libc::c_int,
+                rest.len(),
+            )
+        };
 
-        for (station, (min, max, sum, count)) in local {
-            let entry = match stats.get_mut(&station) {
-                Some(stats) => stats,
-                None => stats.entry(station).or_insert((i32::MAX, i32::MIN, 0, 0)),
-            };
+        let line = if nl_ptr.is_null() {
+            rest
+        } else {
+            let len = unsafe { (nl_ptr as *const u8).offset_from(rest.as_ptr()) } as usize;
+            &rest[..len]
+        };
 
-            entry.0 = entry.0.min(min);
-            entry.1 = entry.1.max(max);
-            entry.2 += sum;
-            entry.3 += count;
+        at += line.len() + 1;
+
+        if line.is_empty() {
+            break;
         }
+
+        let mut fields = line.splitn(2, |c| *c == b';');
+        let station = fields.next().unwrap();
+        let temperature = fields.next().unwrap();
+        let temperature = parse_temperature(temperature);
+
+        let stats = match stats.get_mut(station) {
+            Some(stats) => stats,
+            None => stats.entry(station).or_insert((i32::MAX, i32::MIN, 0, 0)),
+        };
+
+        stats.0 = stats.0.min(temperature);
+        stats.1 = stats.1.max(temperature);
+        stats.2 += temperature;
+        stats.3 += 1;
     }
 
     let stats = BTreeMap::from_iter(
@@ -106,21 +118,30 @@ fn main() {
     print!("}}")
 }
 
+#[inline(always)]
 fn parse_temperature(t: &[u8]) -> i32 {
     // rule states that file is valid floating point with 1 decimal place
-    let mut signed = 1;
-    let mut n = 0;
-    for &b in t {
-        match b {
-            b'-' => signed = -1,
-            b'.' => {}
-            _ => n = n * 10 + (b - b'0') as i32,
-        }
-    }
-    signed * n
+    let mut i = 0;
+    let neg = (t[0] == b'-') as i32;
+    i += neg as usize;
+
+    // first digit
+    let d0 = (t[i] - b'0') as i32;
+
+    // check if there are two digits before the dot: DD.D vs D.D
+    let two_digits = (t[i + 1] != b'.') as i32;
+
+    // second digit (= first digit if two_digits == 0)
+    let d1 = (t[i + two_digits as usize] - b'0') as i32;
+
+    let frac = (t[i + two_digits as usize + 2] - b'0') as i32;
+    let int_part = d0 * (1 + 9 * two_digits) + d1 * two_digits;
+    let val = int_part * 10 + frac;
+
+    val - (neg * val * 2)
 }
 
-fn mmap<'a>(f: File) -> Result<&'a [u8], io::Error> {
+fn mmap(f: File) -> Result<&'static [u8], io::Error> {
     let len = f.metadata()?.len();
 
     unsafe {
@@ -143,76 +164,4 @@ fn mmap<'a>(f: File) -> Result<&'a [u8], io::Error> {
             }
         }
     }
-}
-
-fn chunk_file(map: &[u8], n_workers: usize) -> Vec<(usize, usize)> {
-    let mut chunks = Vec::with_capacity(n_workers);
-    let file_len = map.len();
-    let base = file_len / n_workers;
-    let mut start: usize = 0;
-
-    for _ in 0..n_workers - 1 {
-        let mut end = start + base;
-        if end >= file_len {
-            break;
-        }
-
-        while end < file_len && map[end] != b'\n' {
-            end += 1;
-        }
-
-        chunks.push((start, end));
-        start = end + 1;
-    }
-
-    chunks.push((start, file_len));
-    chunks
-}
-
-fn process_chunk(chunk: &[u8]) -> HashMap<&[u8], (i32, i32, i32, usize), Fnv1aHashBuilder> {
-    // (min, max, sum, count)
-    let mut stats: HashMap<&[u8], (i32, i32, i32, usize), Fnv1aHashBuilder> =
-        HashMap::with_capacity_and_hasher(2048, Fnv1aHashBuilder);
-
-    let mut at = 0;
-
-    while at < chunk.len() {
-        let rest = &chunk[at..];
-        let nl_ptr = unsafe {
-            libc::memchr(
-                rest.as_ptr() as *const libc::c_void,
-                b'\n' as libc::c_int,
-                rest.len(),
-            )
-        };
-
-        let line = if nl_ptr.is_null() {
-            rest
-        } else {
-            let len = unsafe { (nl_ptr as *const u8).offset_from(rest.as_ptr()) } as usize;
-            &rest[..len]
-        };
-
-        at += line.len() + 1;
-
-        if line.is_empty() {
-            continue;
-        }
-
-        let mut fields = line.splitn(2, |c| *c == b';');
-        let station = fields.next().unwrap();
-        let temperature = parse_temperature(fields.next().unwrap());
-
-        let entry = match stats.get_mut(station) {
-            Some(stats) => stats,
-            None => stats.entry(station).or_insert((i32::MAX, i32::MIN, 0, 0)),
-        };
-
-        entry.0 = entry.0.min(temperature);
-        entry.1 = entry.1.max(temperature);
-        entry.2 += temperature;
-        entry.3 += 1;
-    }
-
-    stats
 }

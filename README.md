@@ -79,7 +79,7 @@ cargo r --bin <version>
 | v6      | FNV-1a hasher                                   | 51.91          | 51.82 ± 0.23    | 3.07x   |
 | v7      | mmap                                            | 33.50          | 33.42 ± 0.21    | 4.76x   |
 | v8      | memchr                                          | 29.51          | 29.55 ± 0.14    | 5.40x   |
-| v9      | Multithreading                                  | 4.26           | 4.27 ± 0.03     | 37.45x  |
+| v9      | Unroll temperature parsing                      | 26.37          | 26.34 ± 0.08    | 6.04x   |
 
 ## Note and todos
 
