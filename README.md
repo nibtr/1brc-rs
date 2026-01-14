@@ -86,9 +86,7 @@ cargo r --bin <version>
 - I kinda want to dive deeper in SIMD, but maybe it's for a future
 improvement. Plus, my knowledge on the topic is also limited so it will
 take some time.
-- Maybe add some dependency like `ahash` or the dedicated `memchr` crate 
-to yield better results. I'll do some separate benchmarks on these but
-it's not going into the results table above since it's against the rule.
+- Need better hashing solution.
 - Think I'd take a look at some of community top benchmarks and see if I
 can copy anything (highly doubt I can).
 - Blog on this? (maybe step by step with `perf`?)
