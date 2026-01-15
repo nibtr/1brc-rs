@@ -82,6 +82,7 @@ cargo r --bin <version>
 | v8      | memchr                                          | 25.39          | 25.44 ± 0.13    | 6.28x           |
 | v9      | Unroll temperature parsing                      | 23.37          | 23.43 ± 0.15    | 6.82x           |
 | v10     | Better hashing, use Vec instead of HashMap ([ref](https://github.com/gunnarmorling/1brc/blob/main/src/main/java/dev/morling/onebrc/CalculateAverage_thomaswue.java#L239)) | 21.06 | 21.05 ± 0.10 | 7.57x |
+| v11     | Multi-threading (final?)                        | 3.50           | 3.50 ± 0.02     | 45.54x           |
 
 ## Note and todos
 
