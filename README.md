@@ -31,11 +31,11 @@ distribution (number of measurements per station) must be supported.
 
 Although the rule states that no external dependencies are allowed, I
 think `libc` is at least a minimum dependency since std also uses it. Because of
-this, currently from the `mmap` onward, my implementation only supports
+this, currently from `v7` onward, my implementation only supports
 unix-like system. 
 
-To run the code, first ensure all rust toolchains are installed on your
-machine. Then compile in release mode.
+To run the code, first ensure Rust is installed on your machine. Then
+compile in release mode.
 
 ```bash
 cargo b --release
@@ -57,7 +57,7 @@ cargo r --bin <version>
 
 ### Specs
 
-- OS: Void Linux x86_64 - 6.12 kernel
+- OS: Linux x86_64 - 6.12 kernel
 - CPU: AMD Ryzen 5 7600 (12 cores) @5.17 GHz
 - RAM: 32 GB DDR5
 - Storage: A pretty fast SSD
@@ -81,17 +81,19 @@ cargo r --bin <version>
 | v7      | mmap                                            | 33.50          | 33.42 ± 0.21    | 4.76x           |
 | v8      | memchr                                          | 25.39          | 25.44 ± 0.13    | 6.28x           |
 | v9      | Unroll temperature parsing                      | 23.37          | 23.43 ± 0.15    | 6.82x           |
-| v10     | Better hashing, use Vec instead of HashMap ([ref](https://github.com/gunnarmorling/1brc/blob/main/src/main/java/dev/morling/onebrc/CalculateAverage_thomaswue.java#L239)) | 21.06 | 21.05 ± 0.10 | 7.57x |
+| v10     | Better hashing, use Vec<> and manual collision dectection instead of HashMap ([ref](https://github.com/gunnarmorling/1brc/blob/main/src/main/java/dev/morling/onebrc/CalculateAverage_thomaswue.java#L239)) | 21.06 | 21.05 ± 0.10 | 7.57x |
 | v11     | Multi-threading (final?)                        | 3.50           | 3.50 ± 0.02     | 45.54x           |
 
-## Note and todos
+## Note and TODOs
 
-- I kinda want to dive deeper in SIMD, but maybe it's for a future
+- I kinda want to dive deeper in manual SIMD, but maybe it's for a future
 improvement. Plus, my knowledge on the topic is also limited so it will
-take some time.
-- Need better hashing solution.
+take some time. (I'm using `memchr`, this uses SIMD under the hood I think).
+- The latest hashing is kinda mix and match of
+[thomaswue's version](https://github.com/gunnarmorling/1brc/blob/main/src/main/java/dev/morling/onebrc/CalculateAverage_thomaswue.java#L239). 
+I still can't understand his solution clearly lol.
 - Think I'd take a look at some of community top benchmarks and see if I
-can copy anything (highly doubt I can).
+can copy anything else (highly doubt I can).
 - Blog on this? (maybe step by step with `perf`?)
 
 ## License
