@@ -9,8 +9,8 @@ const HASH_TABLE_SIZE: usize = 1 << 17;
 
 #[derive(Copy, Clone)]
 struct Entry {
-    first_word: usize,
-    second_word: usize,
+    w0: usize,
+    w1: usize,
     name_len: usize,
     name_offset: usize, // offset in mmap
     min: i32,
@@ -133,57 +133,57 @@ fn mmap(f: File) -> Result<&'static [u8], io::Error> {
 
 #[inline(always)]
 fn hash_to_idx(word_0: usize, word_1: usize, table_size: usize) -> usize {
-    let hash = word_0 ^ word_1;
-    let hash = hash ^ (hash >> 33) ^ (hash >> 15);
+    let mut hash = word_0 ^ word_1;
+    hash ^= (hash >> 33) ^ (hash >> 15);
     hash & (table_size - 1)
 }
 
-fn insert_or_update(
-    entries: &mut Vec<Option<Entry>>,
-    station: &[u8],
-    temperature: i32,
-    map: &[u8],
-) {
-    let mut word_0: usize = 0;
-    let mut word_1: usize = 0;
+fn insert_or_update(entries: &mut [Option<Entry>], station: &[u8], temperature: i32, map: &[u8]) {
+    let mut w0: usize = 0;
+    let mut w1: usize = 0;
 
     for i in 0..station.len().min(8) {
-        word_0 |= (station[i] as usize) << (i * 8);
+        w0 |= (station[i] as usize) << (i * 8);
     }
     for i in 0..station.len().saturating_sub(8).min(8) {
-        word_1 |= (station[i + 8] as usize) << (i * 8);
+        w1 |= (station[i + 8] as usize) << (i * 8);
     }
 
-    let mut idx = hash_to_idx(word_0, word_1, entries.len());
+    let mut idx = hash_to_idx(w0, w1, entries.len());
     let step = 31;
     let mask = entries.len() - 1;
-    let name_offset = unsafe { station.as_ptr().offset_from(map.as_ptr()) } as usize;
 
     loop {
         match &mut entries[idx] {
             // empty slot -> insert
             None => {
                 entries[idx] = Some(Entry {
-                    first_word: word_0,
-                    second_word: word_1,
+                    w0,
+                    w1,
                     min: temperature,
                     max: temperature,
                     sum: temperature,
                     count: 1,
                     name_len: station.len(),
-                    name_offset,
+                    name_offset: unsafe { station.as_ptr().offset_from(map.as_ptr()) } as usize,
                 });
                 return;
             }
             Some(e) => {
                 // fast reject if collision
-                if e.first_word != word_0 || e.second_word != word_1 {
+                if e.w0 != w0 || e.w1 != w1 {
+                    idx = (idx + step) & mask;
+                    continue;
+                }
+
+                if e.name_len as usize != station.len() {
                     idx = (idx + step) & mask;
                     continue;
                 }
 
                 // slow path if collision: compare full slice
-                let existing = &map[e.name_offset..(e.name_offset + e.name_len)];
+                let existing =
+                    unsafe { map.get_unchecked(e.name_offset..e.name_offset + e.name_len) };
                 if existing != station {
                     idx = (idx + step) & mask;
                     continue;
