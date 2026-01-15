@@ -43,25 +43,25 @@ fn main() {
         results[idx] = entries;
     }
 
-    let mut final_map: BTreeMap<&str, Entry> = BTreeMap::new();
+    let mut final_map: BTreeMap<&[u8], Entry> = BTreeMap::new();
     for thread_entries_result in &results {
         for &entry in thread_entries_result.iter().flatten() {
             let name_bytes = &map[entry.name_offset..entry.name_offset + entry.name_len];
-            let name = unsafe { std::str::from_utf8_unchecked(name_bytes) };
 
-            if let Some(existing) = final_map.get_mut(name) {
+            if let Some(existing) = final_map.get_mut(name_bytes) {
                 existing.min = existing.min.min(entry.min);
                 existing.max = existing.max.max(entry.max);
                 existing.sum += entry.sum;
                 existing.count += entry.count;
             } else {
-                final_map.insert(name, entry);
+                final_map.insert(name_bytes, entry);
             }
         }
     }
 
     print!("{{");
-    for (i, (name, entry)) in final_map.iter().enumerate() {
+    for (i, (&name_bytes, entry)) in final_map.iter().enumerate() {
+        let name = unsafe { std::str::from_utf8_unchecked(name_bytes) };
         print!(
             "{name}={:.1}/{:.1}/{:.1}",
             entry.min as f64 / 10.0,
