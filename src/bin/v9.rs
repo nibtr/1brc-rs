@@ -120,25 +120,24 @@ fn main() {
 
 #[inline(always)]
 fn parse_temperature(t: &[u8]) -> i32 {
-    // rule states that file is valid floating point with 1 decimal place
+    let mut neg = 1;
     let mut i = 0;
-    let neg = (t[0] == b'-') as i32;
-    i += neg as usize;
+    if t[i] == b'-' {
+        i += 1;
+        neg = -1;
+    }
 
-    // first digit
-    let d0 = (t[i] - b'0') as i32;
+    let mut n = (t[i] - b'0') as i32;
+    i += 1;
 
-    // check if there are two digits before the dot: DD.D vs D.D
-    let two_digits = (t[i + 1] != b'.') as i32;
+    if t[i] != b'.' {
+        n = n * 10 + (t[i] - b'0') as i32;
+        i += 1;
+    }
 
-    // second digit (= first digit if two_digits == 0)
-    let d1 = (t[i + two_digits as usize] - b'0') as i32;
-
-    let frac = (t[i + two_digits as usize + 2] - b'0') as i32;
-    let int_part = d0 * (1 + 9 * two_digits) + d1 * two_digits;
-    let val = int_part * 10 + frac;
-
-    val - (neg * val * 2)
+    i += 1; // skip .
+    n = n * 10 + (t[i] - b'0') as i32;
+    neg * n
 }
 
 fn mmap(f: File) -> Result<&'static [u8], io::Error> {
