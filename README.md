@@ -88,7 +88,7 @@ cargo r --bin <version>
 
 - I kinda want to dive deeper in manual SIMD, but maybe it's for a future
 improvement. Plus, my knowledge on the topic is also limited so it will
-take some time. (I'm using `memchr`, this uses SIMD under the hood I think).
+take some time. (I'm using `libc::memchr`, this uses SIMD under the hood I think).
 - The latest hashing is kinda mix and match of
 [thomaswue's version](https://github.com/gunnarmorling/1brc/blob/main/src/main/java/dev/morling/onebrc/CalculateAverage_thomaswue.java#L239). 
 I still can't understand his solution clearly lol.
