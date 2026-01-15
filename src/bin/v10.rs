@@ -140,6 +140,7 @@ fn mmap(f: File) -> Result<&'static [u8], io::Error> {
     }
 }
 
+// cred: https://github.com/thomaswue
 #[inline(always)]
 fn hash_to_idx(word_0: usize, word_1: usize, table_size: usize) -> usize {
     let mut hash = word_0 ^ word_1;
@@ -147,6 +148,7 @@ fn hash_to_idx(word_0: usize, word_1: usize, table_size: usize) -> usize {
     hash & (table_size - 1)
 }
 
+// cred: https://github.com/thomaswue
 fn insert_or_update(entries: &mut [Option<Entry>], station: &[u8], temperature: i32, map: &[u8]) {
     let mut w0: usize = 0;
     let mut w1: usize = 0;
