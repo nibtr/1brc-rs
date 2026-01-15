@@ -60,6 +60,7 @@ cargo r --bin <version>
 - OS: Void Linux x86_64 - 6.12 kernel
 - CPU: AMD Ryzen 5 7600 (12 cores) @5.17 GHz
 - RAM: 32 GB DDR5
+- Storage: A pretty fast SSD
 
 ### Results
 
@@ -69,17 +70,18 @@ cargo r --bin <version>
 
 ## Benchmark Results
 
-| Version | Description                                     | Median Time (s)| Mean ± SD (s)   | Speedup |
-|---------|-------------------------------------------------|----------------|-----------------|---------|
-| v1      | Naive version: BTreeMap                         | 159.40         | 161.68 ± 5.68   | 1.0x    |
-| v2      | Normal HashMap with capacity                    | 85.16          | 85.54 ± 1.28    | 1.87x   |
-| v3      | Lazy string allocate in HashMap key             | 73.17          | 73.15 ± 0.27    | 2.18x   |
-| v4      | Vec<u8> as key + unchecked UTF-8 parse          | 59.24          | 59.30 ± 0.30    | 2.69x   |
-| v5      | Parse temperature as i32                        | 55.08          | 55.18 ± 0.50    | 2.89x   |
-| v6      | FNV-1a hasher                                   | 51.91          | 51.82 ± 0.23    | 3.07x   |
-| v7      | mmap                                            | 33.50          | 33.42 ± 0.21    | 4.76x   |
-| v8      | memchr                                          | 29.51          | 29.55 ± 0.14    | 5.40x   |
-| v9      | Unroll temperature parsing                      | 26.37          | 26.34 ± 0.08    | 6.04x   |
+| Version | Description                                     | Median Time (s)| Mean ± SD (s)   | Speedup (vs v1) |
+|---------|-------------------------------------------------|----------------|-----------------|-----------------| 
+| v1      | Naive version: BTreeMap                         | 159.40         | 161.68 ± 5.68   | 1.0x            |
+| v2      | Normal HashMap with capacity                    | 85.16          | 85.54 ± 1.28    | 1.87x           |
+| v3      | Lazy string allocate in HashMap key             | 73.17          | 73.15 ± 0.27    | 2.18x           |
+| v4      | Vec<u8> as key + unchecked UTF-8 parse          | 59.24          | 59.30 ± 0.30    | 2.69x           |
+| v5      | Parse temperature as i32                        | 55.08          | 55.18 ± 0.50    | 2.89x           |
+| v6      | FNV-1a hasher                                   | 51.91          | 51.82 ± 0.23    | 3.07x           |
+| v7      | mmap                                            | 33.50          | 33.42 ± 0.21    | 4.76x           |
+| v8      | memchr                                          | 29.51          | 29.55 ± 0.14    | 5.40x           |
+| v9      | Unroll temperature parsing                      | 26.37          | 26.34 ± 0.08    | 6.04x           |
+| v10     | Better hashing, use Vec instead of HashMap ([ref](https://github.com/gunnarmorling/1brc/blob/main/src/main/java/dev/morling/onebrc/CalculateAverage_thomaswue.java#L239)) | 21.78 | 21.76 ± 0.05 | 7.43x |
 
 ## Note and todos
 
