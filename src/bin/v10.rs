@@ -12,7 +12,7 @@ struct Entry {
     w0: usize,
     w1: usize,
     name_len: usize,
-    name_offset: usize, // offset in mmap
+    name_offset: usize, // offset relative to full mmap
     min: i32,
     max: i32,
     sum: i32,
@@ -50,12 +50,21 @@ fn main() {
         }
 
         // find station and temperature
-        let mut i = 0;
-        while line[i] != b';' {
-            i += 1;
-        }
-        let station = &line[..i];
-        let temperature = &line[(i + 1)..];
+        let semicolon_ptr = unsafe {
+            libc::memchr(
+                line.as_ptr() as *const libc::c_void,
+                b';' as libc::c_int,
+                line.len(),
+            )
+        };
+        let semicolon_pos = if semicolon_ptr.is_null() {
+            continue; // skip malformed lines
+        } else {
+            unsafe { (semicolon_ptr as *const u8).offset_from(line.as_ptr()) as usize }
+        };
+
+        let station = &line[..semicolon_pos];
+        let temperature = &line[(semicolon_pos + 1)..];
         let temperature = parse_temperature(temperature);
 
         insert_or_update(&mut entries, station, temperature, map);

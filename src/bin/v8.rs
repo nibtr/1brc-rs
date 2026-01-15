@@ -80,9 +80,21 @@ fn main() {
             break;
         }
 
-        let mut fields = line.splitn(2, |c| *c == b';');
-        let station = fields.next().unwrap();
-        let temperature = fields.next().unwrap();
+        let semicolon_ptr = unsafe {
+            libc::memchr(
+                line.as_ptr() as *const libc::c_void,
+                b';' as libc::c_int,
+                line.len(),
+            )
+        };
+        let semicolon_pos = if semicolon_ptr.is_null() {
+            continue; // skip malformed lines
+        } else {
+            unsafe { (semicolon_ptr as *const u8).offset_from(line.as_ptr()) as usize }
+        };
+
+        let station = &line[..semicolon_pos];
+        let temperature = &line[(semicolon_pos + 1)..];
         let temperature = parse_temperature(temperature);
 
         let stats = match stats.get_mut(station) {

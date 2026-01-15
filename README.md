@@ -79,9 +79,9 @@ cargo r --bin <version>
 | v5      | Parse temperature as i32                        | 55.08          | 55.18 ± 0.50    | 2.89x           |
 | v6      | FNV-1a hasher                                   | 51.91          | 51.82 ± 0.23    | 3.07x           |
 | v7      | mmap                                            | 33.50          | 33.42 ± 0.21    | 4.76x           |
-| v8      | memchr                                          | 29.51          | 29.55 ± 0.14    | 5.40x           |
-| v9      | Unroll temperature parsing                      | 26.37          | 26.34 ± 0.08    | 6.04x           |
-| v10     | Better hashing, use Vec instead of HashMap ([ref](https://github.com/gunnarmorling/1brc/blob/main/src/main/java/dev/morling/onebrc/CalculateAverage_thomaswue.java#L239)) | 21.78 | 21.76 ± 0.05 | 7.43x |
+| v8      | memchr                                          | 25.39          | 25.44 ± 0.13    | 6.28x           |
+| v9      | Unroll temperature parsing                      | 23.37          | 23.43 ± 0.15    | 6.82x           |
+| v10     | Better hashing, use Vec instead of HashMap ([ref](https://github.com/gunnarmorling/1brc/blob/main/src/main/java/dev/morling/onebrc/CalculateAverage_thomaswue.java#L239)) | 21.06 | 21.05 ± 0.10 | 7.57x |
 
 ## Note and todos
 
