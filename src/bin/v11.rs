@@ -9,7 +9,7 @@ use std::{
 
 const HASH_TABLE_SIZE: usize = 1 << 17;
 
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone)]
 struct Entry {
     w0: usize,
     w1: usize,
@@ -30,39 +30,32 @@ fn main() {
         .unwrap_or(1);
     let chunks = chunk_file(map, n_workers);
     let mut handles = Vec::with_capacity(n_workers);
-
     let mut results: Vec<Vec<Option<Entry>>> = vec![Vec::new(); n_workers];
 
-    for (i, (start, end)) in chunks.into_iter().enumerate() {
-        let map = map; // copy pointer
-        // Each thread returns a Vec<Option<Entry>>
+    for (idx, (start, end)) in chunks.into_iter().enumerate() {
         handles.push(thread::spawn(move || {
-            (i, process_chunk(&map[start..end], map))
+            (idx, thread_process_chunk(&map[start..end], map))
         }));
     }
 
     for handle in handles {
-        let (i, entries) = handle.join().expect("should be able to join");
-        results[i] = entries;
+        let (idx, entries) = handle.join().expect("should be able to join");
+        results[idx] = entries;
     }
 
-    let mut final_map: BTreeMap<String, Entry> = BTreeMap::new();
+    let mut final_map: BTreeMap<&str, Entry> = BTreeMap::new();
     for thread_entries_result in &results {
-        for entry_opt in thread_entries_result.iter().flatten() {
-            // Convert station bytes to String, trim control chars
-            let name_bytes =
-                &map[entry_opt.name_offset..entry_opt.name_offset + entry_opt.name_len];
-            let name = String::from_utf8_lossy(name_bytes)
-                .trim_end_matches(|c| c == '\r' || c == '\n')
-                .to_string();
+        for &entry in thread_entries_result.iter().flatten() {
+            let name_bytes = &map[entry.name_offset..entry.name_offset + entry.name_len];
+            let name = unsafe { std::str::from_utf8_unchecked(name_bytes) };
 
-            if let Some(existing) = final_map.get_mut(&name) {
-                existing.min = existing.min.min(entry_opt.min);
-                existing.max = existing.max.max(entry_opt.max);
-                existing.sum += entry_opt.sum;
-                existing.count += entry_opt.count;
+            if let Some(existing) = final_map.get_mut(name) {
+                existing.min = existing.min.min(entry.min);
+                existing.max = existing.max.max(entry.max);
+                existing.sum += entry.sum;
+                existing.count += entry.count;
             } else {
-                final_map.insert(name, *entry_opt);
+                final_map.insert(name, entry);
             }
         }
     }
@@ -136,7 +129,7 @@ fn hash_to_idx(word_0: usize, word_1: usize, table_size: usize) -> usize {
     hash & (table_size - 1)
 }
 
-fn insert_or_update(
+fn thread_insert_or_update(
     entries: &mut [Option<Entry>],
     station: &[u8],
     temperature: i32,
@@ -229,7 +222,7 @@ fn chunk_file(map: &[u8], n_workers: usize) -> Vec<(usize, usize)> {
     chunks
 }
 
-fn process_chunk(chunk: &[u8], map: &[u8]) -> Vec<Option<Entry>> {
+fn thread_process_chunk(chunk: &[u8], map: &[u8]) -> Vec<Option<Entry>> {
     let mut entries: Vec<Option<Entry>> = vec![None; HASH_TABLE_SIZE];
 
     let mut at = 0;
@@ -273,7 +266,7 @@ fn process_chunk(chunk: &[u8], map: &[u8]) -> Vec<Option<Entry>> {
         let temperature = &line[(semicolon_pos + 1)..];
         let temperature = parse_temperature(temperature);
 
-        insert_or_update(&mut entries, station, temperature, map);
+        thread_insert_or_update(&mut entries, station, temperature, map);
     }
 
     entries
