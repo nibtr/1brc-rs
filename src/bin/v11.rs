@@ -14,7 +14,7 @@ struct Entry {
     w0: usize,
     w1: usize,
     name_len: usize,
-    name_offset: usize, // offset in mmap
+    name_offset: usize, // offset relative to full mmap
     min: i32,
     max: i32,
     sum: i32,
