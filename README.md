@@ -58,7 +58,7 @@ cargo r --bin <version>
 ### Specs
 
 - OS: Linux x86_64 - 6.12 kernel
-- CPU: AMD Ryzen 5 7600 (12 cores) @5.17 GHz
+- CPU: AMD Ryzen 5 7600 (12 cores) measured at ~4.5-4.7 GHz
 - RAM: 32 GB DDR5
 - Storage: A pretty fast SSD
 
