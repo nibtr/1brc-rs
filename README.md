@@ -68,6 +68,9 @@ cargo r --bin <version>
 - Calculate the **median** and **mean** runtime.
 - Speedup is calculated relative to the baseline (v1).
 
+Update: Finally got sub 3s. It can get lower but I think that's good
+enough for now.
+
 ## Benchmark Results
 
 | Version | Description                                     | Median Time (s)| Mean ± SD (s)   | Speedup (vs v1) |
@@ -82,19 +85,20 @@ cargo r --bin <version>
 | v8      | memchr                                          | 25.39          | 25.44 ± 0.13    | 6.28x           |
 | v9      | Unroll temperature parsing                      | 23.37          | 23.43 ± 0.15    | 6.82x           |
 | v10     | Better hashing, use Vec<> and manual collision detection instead of HashMap ([ref](https://github.com/gunnarmorling/1brc/blob/main/src/main/java/dev/morling/onebrc/CalculateAverage_thomaswue.java#L239)) | 21.06 | 21.05 ± 0.10 | 7.57x |
-| v11     | Multi-threading (final?)                        | 3.50           | 3.50 ± 0.02     | 45.54x           |
+| v11     | Multi-threading                                 | 3.50           | 3.50 ± 0.02     | 45.54x          |
+| v12     | Multi-threading + inline station name + better temperature parse + faster first 16 bytes load for name (final ?) | 2.41 | 2.39 ± 0.05 | 66.14x |
 
 ## Note and TODOs
 
 - I kinda want to dive deeper in manual SIMD, but maybe it's for a future
 improvement. Plus, my knowledge on the topic is also limited so it will
 take some time. (I'm using `libc::memchr`, this uses SIMD under the hood I think).
-- The latest hashing is kinda mix and match of
+- The latest hashing is kinda a mix and match of
 [thomaswue's version](https://github.com/gunnarmorling/1brc/blob/main/src/main/java/dev/morling/onebrc/CalculateAverage_thomaswue.java#L239). 
-I still can't understand his solution clearly lol.
+I still don't understand all of his code lol.
 - Think I'd take a look at some of community top benchmarks and see if I
-can copy anything else (highly doubt I can).
-- Blog on this? (maybe step by step with `perf`?)
+can copy anything else (highly doubt I can, but I did my best).
+- Blog on this? (maybe step by step with `perf`).
 
 ## License
 
