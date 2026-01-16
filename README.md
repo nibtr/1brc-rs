@@ -53,6 +53,13 @@ cargo r --bin gen 1_000_000_000
 cargo r --bin <version>
 ```
 
+For v12, you must use nightly Rust:
+
+```bash
+rustup toolchain install nightly
+rustup default nightly
+```
+
 ## Benchmarks
 
 ### Specs
