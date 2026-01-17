@@ -77,10 +77,6 @@ impl Entry {
 
     #[inline(always)]
     fn entry_name_eq(&self, station: &[u8], map: &[u8]) -> bool {
-        if self.name_len as usize != station.len() {
-            return false;
-        }
-
         if station.len() < INLINE_NAME_CAP {
             &self.inline_name[..station.len()] == station
         } else {
@@ -300,7 +296,7 @@ fn thread_insert_or_update(
         match &mut entries[idx] {
             // empty slot -> insert
             None => {
-                let mut e = Entry::new(w0, w1, temperature, station.len() as u8);
+                let mut e = Entry::new(w0, w1, temperature, len as u8);
                 e.write_inline_name(station, map);
                 entries[idx] = Some(e);
 
@@ -308,7 +304,7 @@ fn thread_insert_or_update(
             }
             Some(e) => {
                 // check first 16 bytes, fast reject if collision
-                if e.w0 != w0 || e.w1 != w1 {
+                if e.name_len as usize != len || e.w0 != w0 || e.w1 != w1 {
                     idx = (idx + STEP) & mask;
                     continue;
                 }

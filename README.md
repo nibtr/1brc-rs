@@ -93,7 +93,7 @@ enough for now.
 | v9      | Unroll temperature parsing                      | 23.37          | 23.43 ± 0.15    | 6.82x           |
 | v10     | Better hashing, use Vec<> and manual collision detection instead of HashMap ([ref](https://github.com/gunnarmorling/1brc/blob/main/src/main/java/dev/morling/onebrc/CalculateAverage_thomaswue.java#L239)) | 21.06 | 21.05 ± 0.10 | 7.57x |
 | v11     | Multi-threading                                 | 3.50           | 3.50 ± 0.02     | 45.54x          |
-| v12     | Multi-threading + inline station name + better temperature parse + faster first 16 bytes load for name (final ?) | 2.41 | 2.39 ± 0.05 | 66.14x |
+| v12     | Multi-threading + inline station name + better temperature parse + faster first 16 bytes load for name (final ?) | 2.35 | 2.35 ± 0.05 | 67.83x |
 
 ## Note and TODOs
 
