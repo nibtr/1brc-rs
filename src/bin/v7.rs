@@ -50,7 +50,7 @@ impl BuildHasher for Fnv1aHashBuilder {
 
 fn main() {
     let f = File::open("data/measurements.txt").expect("file should exist");
-    let f = mmap(f).unwrap();
+    let f = unsafe { mmap(f).unwrap() };
 
     // (min, max, sum, count)
     let mut stats: HashMap<Vec<u8>, (i32, i32, i32, usize), Fnv1aHashBuilder> =
@@ -115,7 +115,7 @@ fn parse_temperature(t: &[u8]) -> i32 {
     signed * n
 }
 
-fn mmap<'a>(f: File) -> Result<&'a [u8], io::Error> {
+unsafe fn mmap(f: File) -> Result<&'static [u8], io::Error> {
     let len = f.metadata()?.len();
 
     unsafe {

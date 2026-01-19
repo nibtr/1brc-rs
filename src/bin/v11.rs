@@ -23,7 +23,7 @@ struct Entry {
 
 fn main() {
     let f = File::open("data/measurements.txt").expect("file should exist");
-    let map = mmap(f).unwrap();
+    let map = unsafe { mmap(f).unwrap() };
 
     let n_workers = thread::available_parallelism()
         .map(|n| n.get())
@@ -97,7 +97,7 @@ fn parse_temperature(t: &[u8]) -> i32 {
     neg * n
 }
 
-fn mmap(f: File) -> Result<&'static [u8], io::Error> {
+unsafe fn mmap(f: File) -> Result<&'static [u8], io::Error> {
     let len = f.metadata()?.len();
 
     unsafe {
